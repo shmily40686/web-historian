@@ -27,7 +27,6 @@ exports.initialize = function(pathsObj) {
 
 //returns array
 exports.readListOfUrls = function(callback) {
-  //console.log('BELINDA', exports.paths.list);
   fs.readFile(exports.paths.list, 'utf8', (err, data) => {
     if (err) throw err;
     var urls = data.split('\n');
@@ -47,13 +46,10 @@ exports.addUrlToList = function(url, callback) {
   // var list = exports.path.list;
   exports.readListOfUrls((urls) => {
     //edit data
-    // console.log(urls);
     if (!urls.includes(url)) {
-      console.log('reached here');
-      var data = urls.join('\n') + '\n' + url;
+      var data = urls.join('\n') + url + '\n';
       fs.writeFile(exports.paths.list, data, 'utf8', function(err) {
         if (err) throw err;
-        exports.readListOfUrls((urls) => console.log(urls));
         callback();
       });    
     } else {
@@ -83,8 +79,5 @@ exports.downloadUrls = function(urls) {
     });
   });
 
-  exports.getUrlFile = function(url, callback) {
-
-  };
 
 };

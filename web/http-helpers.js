@@ -12,39 +12,52 @@ exports.headers = {
 };
 
 //asset === file path
+//callback input - data
 exports.serveAssets = function(res, asset, callback) {
-  // Write some code here that helps serve up your static files!
-  // (Static files are things like html (yours or archived from others...),
-  // css, or anything that doesn't change often.)
-
-    //diff content headers
+    var absPath;
     if (asset === '/') {
-      var absPath = archive.paths.siteAssets + '/index.html';
-      fs.readFile(absPath, 'utf8', (err, data) => {
-        if (err) {
-          res.end(404);
-        } else {
-          callback(data);
-        }
-      });
-    } else if (path.extname(asset) !== '') { //if has file
-
-      var absPath = archive.paths.siteAssets + asset;
-      fs.readFile(absPath, 'utf8', (err, data) => {
-        if (err) {
-          res.end(404);
-        } else {
-          callback(data);
-        }
-      });
-
+      absPath = archive.paths.siteAssets + '/index.html';
+    } else {
+      absPath = archive.paths.siteAssets + asset;
+      console.log(absPath);
     }
-  /*
-  create diff content headers for diff files
-  fs.readFile
-  */
+    // fs.readFile(absPath, 'utf8', (err, data) => {
+    //   if (err) {
+    //     res.end(404);
+    //   } else {
+    //     callback(data);
+    //   }
+    // });
+    // } else { //if has file
+    fs.readFile(absPath, 'utf8', (err, data) => {
+      if (err) res.end(404);
+      callback(data);
+    });
+    // } 
 };
 
-
-
+//url ex: "www.example.com"
+//callback input - response code and (opt) data
+exports.getPageFile = function(res, fileName, filePath, callback){
+  /*
+  if isUrlArchived is true for url,
+    fs.readFile for url
+  else 
+    add url to list
+    end response with 404
+  */
+  archive.isUrlArchived(fileName.slice(1), function(isArchived){
+    if(isArchived){
+      fs.readFile(filePath + fileName,'utf8',function(err,data){
+        if (err) throw err;
+        callback(200, data);
+      })
+    } else {
+      archive.addUrlToList(fileName.slice(1),function(){
+        callback(404, fileName.slice(1) + 'not found');
+        //res.end(404);
+      })
+    }
+  })
+}
 // As you progress, keep thinking about what helper functions you can put here!

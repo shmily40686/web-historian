@@ -12,34 +12,49 @@ var mimeType = {
   '.ico' : 'image/x-icon'
 };
 
+
+
+
 exports.handleRequest = function (req, res) {
   // res.writeHead (httpHelpers.headers);
   //if req is GET
     //httpHelpers.serveAssets
+    // console.log(req.url);
   if (req.method === 'GET') {
-    httpHelpers.serveAssets(res, req.url, (data) => {
-      // console.log('serveAssets callback: ', data);
-      var headers = httpHelpers.headers;
-      headers['Content-Type'] = mimeType[path.extname(req.url)];
-      // console.log(mimeType[path.extname(req.url)]);
-       res.writeHead(200, httpHelpers.headers);      
-      res.end(data);
-    });
-  } else if (req.method === 'POST'){
-    // res.on('data', function (body) {
-    //     console.log("data");
-    //     response += body;
-    // });
+    if(req.url === '/' || path.extname(req.url) !== ''){ //in public folder
+      console.log(req.url);
+      httpHelpers.serveAssets(res, req.url, (data) => {
+        var headers = httpHelpers.headers;
+        headers['Content-Type'] = mimeType[path.extname(req.url)];
+        res.writeHead(200, httpHelpers.headers);      
+        res.end(data);
+      });
+    } else { //in archive sites folder
+      // console.log('url:',req.url.slice(1));
+      httpHelpers.getPageFile(res, req.url, archive.paths.archivedSites, (responseCode, data) => {
+        //write headers
+        //end response with data
+        var headers = httpHelpers.headers;
+        headers['Content-Type'] = 'text/html';
+        res.writeHead(responseCode, httpHelpers.headers);      
+        res.end(data);
 
-    // res.on('end', function () { 
-    //     console.log("end");
-    //     response = "";
-    // });
-    res.writeHead(201,httpHelpers.headers);
-    res.end();
+      });
+    }
+  } else if (req.method === 'POST'){
+    var body = '';
+    req.on('data', function (chunk) {
+        body += chunk;
+    });
+    req.on('end', function () { 
+        archive.addUrlToList(body.slice(4), () => {
+          res.writeHead(302,httpHelpers.headers);
+          res.end();
+        });                    
+    });
+
   } else {
-    res.end();
+    res.end(archive.paths.list);
   }
-  
-  // res.end(archive.paths.list);
+
 };
