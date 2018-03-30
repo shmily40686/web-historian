@@ -13,45 +13,49 @@ var mimeType = {
 };
 
 
-
-
 exports.handleRequest = function (req, res) {
-  // res.writeHead (httpHelpers.headers);
-  //if req is GET
-    //httpHelpers.serveAssets
-    // console.log(req.url);
+  console.log('REQUEST url: ', req.url, 'method', req.method);
+
+
   if (req.method === 'GET') {
-    if(req.url === '/' || path.extname(req.url) !== ''){ //in public folder
-      console.log(req.url);
-      httpHelpers.serveAssets(res, req.url, (data) => {
-        var headers = httpHelpers.headers;
-        headers['Content-Type'] = mimeType[path.extname(req.url)];
-        res.writeHead(200, httpHelpers.headers);      
-        res.end(data);
-      });
-    } else { //in archive sites folder
-      // console.log('url:',req.url.slice(1));
-      httpHelpers.getPageFile(res, req.url, archive.paths.archivedSites, (responseCode, data) => {
+    // var urls = archive.readListOfUrls((urls) => {
+    //     archive.downloadUrls(urls);
+    // });
+    if (req.url.substring(0, 6) === '/?url=') {
+      httpHelpers.getPageFile(res, req.url, (responseCode, data) => {
         //write headers
         //end response with data
         var headers = httpHelpers.headers;
         headers['Content-Type'] = 'text/html';
         res.writeHead(responseCode, httpHelpers.headers);      
         res.end(data);
+      });
 
+    } else {
+      httpHelpers.serveAssets(res, req.url, (data) => {
+        var headers = httpHelpers.headers;
+        headers['Content-Type'] = mimeType[path.extname(req.url)];
+        res.writeHead(200, httpHelpers.headers);      
+        res.end(data);
       });
     }
+    // if(req.url === '/' || !archive.isUrl(req.url)){ //in public folder
+    // } else { //in archive sites folder
+    // }
   } else if (req.method === 'POST'){
-    var body = '';
-    req.on('data', function (chunk) {
-        body += chunk;
-    });
-    req.on('end', function () { 
-        archive.addUrlToList(body.slice(4), () => {
-          res.writeHead(302,httpHelpers.headers);
-          res.end();
-        });                    
-    });
+    if (req.url === '/') {
+      var body = '';
+      req.on('data', function (chunk) {
+          body += chunk;
+      });
+      req.on('end', function () { 
+          archive.addUrlToList(body.slice(4), () => {
+            res.writeHead(302,httpHelpers.headers);
+            res.end();
+          });                    
+      });
+    }
+
 
   } else {
     res.end(archive.paths.list);

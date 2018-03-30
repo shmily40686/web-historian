@@ -19,7 +19,7 @@ exports.serveAssets = function(res, asset, callback) {
       absPath = archive.paths.siteAssets + '/index.html';
     } else {
       absPath = archive.paths.siteAssets + asset;
-      console.log(absPath);
+      // console.log(absPath);
     }
     // fs.readFile(absPath, 'utf8', (err, data) => {
     //   if (err) {
@@ -38,7 +38,8 @@ exports.serveAssets = function(res, asset, callback) {
 
 //url ex: "www.example.com"
 //callback input - response code and (opt) data
-exports.getPageFile = function(res, fileName, filePath, callback){
+//I: filename is like '?url=www.example.com'
+exports.getPageFile = function(res, fileName, callback){
   /*
   if isUrlArchived is true for url,
     fs.readFile for url
@@ -46,15 +47,21 @@ exports.getPageFile = function(res, fileName, filePath, callback){
     add url to list
     end response with 404
   */
-  archive.isUrlArchived(fileName.slice(1), function(isArchived){
+  fileName = fileName.slice(6);
+  archive.isUrlArchived(fileName, function(isArchived){
     if(isArchived){
-      fs.readFile(filePath + fileName,'utf8',function(err,data){
+      fs.readFile(archive.paths.archivedSites + '/' + fileName,'utf8',function(err,data){
         if (err) throw err;
         callback(200, data);
       })
     } else {
-      archive.addUrlToList(fileName.slice(1),function(){
-        callback(404, fileName.slice(1) + 'not found');
+      archive.addUrlToList(fileName, function(){
+        fs.readFile(archive.paths.siteAssets + '/' + 'loading.html','utf8',function(err,data){
+          if (err) throw err;
+          callback(404, data);
+        });
+        
+  
         //res.end(404);
       })
     }

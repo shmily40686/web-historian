@@ -10,13 +10,26 @@
 </head>
 <body>
   Enter a URL here:
-  <form method="POST">
+  <form>
     <input type="input" name="url"></input>
   </form>
 <script>
-  // $("#search").bind('ajax:complete', function() {
-  //   console.log('hi');
-  // });
+  $(document).ready(() => {
+    $('form').submit(function() {
+      e.preventDefault();
+      $.ajax({
+        type: "POST",
+        url: '/',
+        success: (data) => {
+          console.log('SUCCESS:', data);
+        },
+        error: (xhr, err, message) => {
+          console.log('ERROR:', xhr, err, message);
+          //$.get('/loading.html', (data) => {console.log(data)});
+        }
+      });
+    });
+  });
 </script>
 </body>
 </html>

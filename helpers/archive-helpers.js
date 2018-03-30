@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var http = require('http');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -31,9 +32,7 @@ exports.readListOfUrls = function(callback) {
     if (err) throw err;
     var urls = data.split('\n');
     callback(urls);
-
   });
-  //fs.readFile()
 };
 
 exports.isUrlInList = function(url, callback) {
@@ -42,12 +41,17 @@ exports.isUrlInList = function(url, callback) {
   });
 };
 
+// exports.isUrl = function(str) {
+//   return str.includes('www.') || str.includes('http://') || str.includes('https://');
+// }
+
 exports.addUrlToList = function(url, callback) {
   // var list = exports.path.list;
   exports.readListOfUrls((urls) => {
     //edit data
     if (!urls.includes(url)) {
       var data = urls.join('\n') + url + '\n';
+      console.log(data);
       fs.writeFile(exports.paths.list, data, 'utf8', function(err) {
         if (err) throw err;
         callback();
@@ -72,11 +76,39 @@ exports.downloadUrls = function(urls) {
   for each url,
     create file in archivedSites directory
   */
+
   urls.forEach(url => {
-    //get request from web
-    fs.writeFile(exports.paths.archivedSites + '/' + url, 'testtesttest', 'utf8', function(err) {
-      if (err) throw err;
+        console.log('downloading urls', url);
+    
+    http.get('http://' + url, (res) => {
+
+      if (res.statusCode === 200) {
+        // var statusCode = res.statusCode;
+        //var contentType = res.headers('content-type');
+
+        var writeStream = fs.createWriteStream(exports.paths.archivedSites + '/' + url);
+        res.pipe(writeStream);
+
+        writeStream.on('error', (err) => {
+          console.log(err);
+        });
+      }
+      console.log(res);
+    }).on('error', (e) => {
+      console.error('Got error: ', e.message);
     });
+    //get request from web
+    //create write stream
+
+    // fs.writeFile(exports.paths.archivedSites + '/' + url, `<html>
+    // <head>
+    // </head>
+    // <body>
+    // <div> hello </div>
+    // </body>
+    // </html>`, 'utf8', function(err) {
+    //   if (err) throw err;
+    // });
   });
 
 
